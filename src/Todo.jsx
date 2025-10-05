@@ -13,23 +13,19 @@ import checkedIcon from "./assets/icons/icon-checked.svg";
 import checkedIconWhite from "./assets/icons/icon-checked-white.svg";
 
 function Todo() {
-  const [todoInput, setTodoInput] = useState("");
-  const [dateInput, setDateInput] = useState("");
-  const [timeInput, setTimeInput] = useState("");
+  const [formData, setFormData] = useState({
+    "text-input": "",
+    "date-input": "",
+    "time-input": "",
+  });
 
-  function getTodoInputValue(event) {
-    setTodoInput(event.target.value);
-  }
-
-  function getDateInputValue(event) {
-    setDateInput(event.target.value);
-  }
-
-  function getTimeInputValue(event) {
-    setTimeInput(event.target.value);
-  }
-
-  console.log(todoInput, dateInput, timeInput);
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    setFormData((prev) => ({
+      ...prev,
+      [name]: value,
+    }));
+  };
 
   return (
     <div className="h-svh flex items-center justify-center">
@@ -61,8 +57,8 @@ function Todo() {
                 id="text-input"
                 name="text-input"
                 placeholder="e.g, Buy groceries"
-                value={todoInput}
-                onChange={getTodoInputValue}
+                value={formData["text-input"]}
+                onChange={handleChange}
               />
               <label
                 htmlFor="date-input"
@@ -75,8 +71,8 @@ function Todo() {
                 type="date"
                 name="date-input"
                 id="date-input"
-                value={dateInput}
-                onChange={getDateInputValue}
+                value={formData["date-input"]}
+                onChange={handleChange}
               />
               <label
                 htmlFor="time-input"
@@ -89,14 +85,14 @@ function Todo() {
                 type="time"
                 id="time-input"
                 name="time-input"
-                value={timeInput}
-                onChange={getTimeInputValue}
+                value={formData["time-input"]}
+                onChange={handleChange}
               />
             </fieldset>
             <fieldset className="w-full flex gap-5">
               <button
                 className="flex justify-center gap-2 bg-blue-500/90 px-3 pr-6 py-3 rounded-lg font-semibold text-white cursor-pointer drop-shadow-blue-600 drop-shadow-md transition-all ease-in-out duration-400 hover:bg-blue-500 hover:drop-shadow-blue-700 hover:drop-shadow-lg"
-                type="button"
+                type="submit"
                 aria-label="Add Task"
                 title="Add task"
               >
