@@ -18,7 +18,23 @@ function Todo() {
     date: "",
     time: "",
   });
-  const [todos, setTodos] = useState([]);
+  const [todos, setTodos] = useState(() => {
+    const savedTodos = JSON.parse(localStorage.getItem("todos"));
+    return savedTodos ? savedTodos : [];
+  });
+
+  useEffect(() => {
+    localStorage.setItem("todos", JSON.stringify(todos));
+  }, [todos]);
+
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    setFormData((prev) => ({
+      ...prev,
+      [name]: value,
+    }));
+    console.log(e);
+  };
 
   const addTodos = () => {
     if (
@@ -47,15 +63,12 @@ function Todo() {
       time: formData.time,
     };
     setTodos((prev) => [...prev, todoItem]);
-  };
-
-  const handleChange = (e) => {
-    const { name, value } = e.target;
     setFormData((prev) => ({
       ...prev,
-      [name]: value,
+      text: "",
+      date: "",
+      time: "",
     }));
-    console.log(e);
   };
 
   const handleSubmit = (e) => {
