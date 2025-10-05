@@ -13,6 +13,24 @@ import checkedIcon from "./assets/icons/icon-checked.svg";
 import checkedIconWhite from "./assets/icons/icon-checked-white.svg";
 
 function Todo() {
+  const [todoInput, setTodoInput] = useState("");
+  const [dateInput, setDateInput] = useState("");
+  const [timeInput, setTimeInput] = useState("");
+
+  function getTodoInputValue(event) {
+    setTodoInput(event.target.value);
+  }
+
+  function getDateInputValue(event) {
+    setDateInput(event.target.value);
+  }
+
+  function getTimeInputValue(event) {
+    setTimeInput(event.target.value);
+  }
+
+  console.log(todoInput, dateInput, timeInput);
+
   return (
     <div className="h-svh flex items-center justify-center">
       <div className="h-fit flex flex-col gap-10">
@@ -43,6 +61,8 @@ function Todo() {
                 id="text-input"
                 name="text-input"
                 placeholder="e.g, Buy groceries"
+                value={todoInput}
+                onChange={getTodoInputValue}
               />
               <label
                 htmlFor="date-input"
@@ -55,6 +75,8 @@ function Todo() {
                 type="date"
                 name="date-input"
                 id="date-input"
+                value={dateInput}
+                onChange={getDateInputValue}
               />
               <label
                 htmlFor="time-input"
@@ -67,6 +89,8 @@ function Todo() {
                 type="time"
                 id="time-input"
                 name="time-input"
+                value={timeInput}
+                onChange={getTimeInputValue}
               />
             </fieldset>
             <fieldset className="w-full flex gap-5">
