@@ -71,6 +71,10 @@ function Todo() {
     }));
   };
 
+  const deleteTodo = (id) => {
+    setTodos(todos.filter((todo) => todo.id !== id));
+  };
+
   const handleSubmit = (e) => {
     e.preventDefault();
   };
@@ -187,6 +191,7 @@ function Todo() {
                       type="button"
                       aria-label="Delete task"
                       title="Delete task"
+                      onClick={() => deleteTodo(todo.id)}
                     >
                       <img src={deleteIconWhite} alt="" />
                     </button>
