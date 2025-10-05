@@ -21,6 +21,24 @@ function Todo() {
   const [todos, setTodos] = useState([]);
 
   const addTodos = () => {
+    if (
+      !formData.text.trim() &&
+      !formData.date.trim() &&
+      !formData.time.trim()
+    ) {
+      alert("Please fill out the forms!");
+      return;
+    } else if (!formData.text.trim()) {
+      alert("Please enter a task!");
+      return;
+    } else if (!formData.date.trim()) {
+      alert("Please insert the date!");
+      return;
+    } else if (!formData.time.trim()) {
+      alert("Please insert the time!");
+      return;
+    }
+
     const todoItem = {
       id: crypto.randomUUID(),
       completed: false,
@@ -141,12 +159,18 @@ function Todo() {
                     <span className="">{todo.date}</span>
                     <span className="font-medium">
                       {/* Link this at to the time input field */}
-                      <span className="text-[1.3rem]">@</span> {todo.time}
+                      <label
+                        htmlFor="time-input"
+                        className="text-[1.3rem] cursor-pointer"
+                      >
+                        @
+                      </label>{" "}
+                      {todo.time}
                     </span>
                   </div>
                   <div className="grid gap-2">
                     <button
-                      className="px-5 py-2 rounded-full bg-red-600/65 cursor-pointer  transition-all ease-in-out duration-200 hover:bg-red-600/80"
+                      className="px-5 py-2 rounded-full bg-red-600/65 cursor-pointer  transition-all ease-in-out duration-200 hover:bg-red-600"
                       type="button"
                       aria-label="Delete task"
                       title="Delete task"
@@ -154,7 +178,7 @@ function Todo() {
                       <img src={deleteIconWhite} alt="" />
                     </button>
                     <button
-                      className="px-5 py-2 rounded-full bg-blue-700/60 cursor-pointer  transition-all ease-in-out duration-200 hover:bg-blue-700"
+                      className="px-5 py-2 rounded-full bg-blue-700/60 cursor-pointer  transition-all ease-in-out duration-200 hover:bg-blue-800"
                       type="button"
                       aria-label="Mark task as done"
                       title="Mark as done"
