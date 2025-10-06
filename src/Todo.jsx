@@ -1,16 +1,11 @@
 import { useState, useEffect } from "react";
 
 import lightNavbarIcon from "../public/favicon-light.png";
-import addIcon from "./assets/icons/icon-add.svg";
-import addIconWhite from "./assets/icons/icon-add-white.svg";
-import clearIcon from "./assets/icons/icon-clear.svg";
-import clearIconWhite from "./assets/icons/icon-clear-white.svg";
-import deleteIcon from "./assets/icons/icon-delete.svg";
-import deleteIconWhite from "./assets/icons/icon-delete-white.svg";
-import checkIcon from "./assets/icons/icon-check.svg";
-import checkIconWhite from "./assets/icons/icon-check-white.svg";
-import checkedIcon from "./assets/icons/icon-checked.svg";
-import checkedIconWhite from "./assets/icons/icon-checked-white.svg";
+import addIcon from "./assets/icons/icon-add-white.svg";
+import clearIcon from "./assets/icons/icon-clear-white.svg";
+import deleteIcon from "./assets/icons/icon-delete-white.svg";
+import checkIcon from "./assets/icons/icon-check-white.svg";
+import checkedIcon from "./assets/icons/icon-checked-white.svg";
 
 function Todo() {
   const [formData, setFormData] = useState({
@@ -73,6 +68,17 @@ function Todo() {
 
   const deleteTodo = (id) => {
     setTodos(todos.filter((todo) => todo.id !== id));
+  };
+
+  const checkTodo = (id) => {
+    const updatedTodo = todos.map((todo) =>
+      todo.id === id ? { ...todo, completed: !todo.completed } : todo
+    );
+    setTodos(updatedTodo);
+  };
+
+  const clearTodos = () => {
+    setTodos([]);
   };
 
   const handleSubmit = (e) => {
@@ -149,7 +155,7 @@ function Todo() {
                 title="Add task"
                 onClick={addTodos}
               >
-                <img src={addIconWhite} alt="" />
+                <img src={addIcon} alt="" />
                 <span>Add Task</span>
               </button>
               <button
@@ -157,8 +163,9 @@ function Todo() {
                 type="button"
                 aria-label="Clear all tasks"
                 title="Clear all tasks"
+                onClick={clearTodos}
               >
-                <img src={clearIconWhite} alt="" />
+                <img src={clearIcon} alt="" />
                 <span>Clear Tasks</span>
               </button>
             </fieldset>
@@ -171,7 +178,7 @@ function Todo() {
                   className="flex justify-between items-center p-2 bg-blue-600 rounded-lg cursor-pointer transition-all ease-in-out duration-100 hover:translate-x-[.5px] hover:translate-y-[-.5px]"
                   key={todo.id}
                 >
-                  <div className="grid">
+                  <div className={!todo.completed ? "grid" : "opacity-50 grid"}>
                     <span className="font-semibold text-lg">{todo.text}</span>
                     <span className="">{todo.date}</span>
                     <span className="font-medium">
@@ -193,15 +200,19 @@ function Todo() {
                       title="Delete task"
                       onClick={() => deleteTodo(todo.id)}
                     >
-                      <img src={deleteIconWhite} alt="" />
+                      <img src={deleteIcon} alt="" />
                     </button>
                     <button
                       className="px-5 py-2 rounded-full bg-blue-700/60 cursor-pointer  transition-all ease-in-out duration-200 hover:bg-blue-800"
                       type="button"
                       aria-label="Mark task as done"
                       title="Mark as done"
+                      onClick={() => checkTodo(todo.id)}
                     >
-                      <img src={checkIconWhite} alt="" />
+                      <img
+                        src={!todo.completed ? checkIcon : checkedIcon}
+                        alt=""
+                      />
                     </button>
                   </div>
                 </li>
