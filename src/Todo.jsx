@@ -28,7 +28,6 @@ function Todo() {
       ...prev,
       [name]: value,
     }));
-    console.log(e);
   };
 
   const addTodos = () => {
