@@ -1,9 +1,15 @@
+import { useState, useRef, useEffect } from "react";
+
 import deleteIcon from "../../assets/icons/icon-delete-white.svg";
 import checkIcon from "../../assets/icons/icon-check-white.svg";
 import checkedIcon from "../../assets/icons/icon-checked-white.svg";
 import clsx from "clsx";
 
 export default function TodoRender({ setTodos, todos }) {
+  const [editBoolean, setEditBoolean] = useState(false);
+  const [editInputValue, setEditInputValue] = useState("");
+  const [keyDown, setKeyDown] = useState("");
+
   const deleteTodo = (id) => {
     setTodos(todos.filter((todo) => todo.id !== id));
   };
@@ -15,22 +21,61 @@ export default function TodoRender({ setTodos, todos }) {
     setTodos(updatedTodo);
   };
 
+  const editTodo = (id) => {
+    const editedTodo = todos.map((todo) =>
+      todo.id === id ? { ...todo, edited: !todo.edited } : todo
+    );
+    setTodos(editedTodo);
+    setEditBoolean((prev) => !prev);
+  };
+
+  const inputRef = useRef(null);
+  useEffect(() => {
+    if (editBoolean && inputRef.current) {
+      inputRef.current.focus();
+      console.log(inputRef.current.value);
+      setEditBoolean(false);
+    }
+  }, [editBoolean]);
+
+  const handleChange = (e) => {
+    setEditInputValue(e.target.value);
+  };
+
+  const handleKeyDown = (e) => {
+    if (e.key === "Enter") {
+      const editedTodoValue = todos.map(
+        (todo) =>
+          todo.edited && { ...todo, text: editInputValue, edited: !todo.edited }
+      );
+      setTodos(editedTodoValue);
+      setKeyDown("Enter");
+    } else setKeyDown("");
+  };
+
   return (
-    <ul className="grid gap-3 bg-blue-500 text-white p-3 rounded-lg drop-shadow-xl drop-shadow-blue-300">
+    <ul
+      className="grid gap-3 bg-blue-500 text-white p-3 rounded-lg drop-shadow-xl drop-shadow-blue-300"
+      onKeyDown={handleKeyDown}
+    >
       {todos.map((todo) => {
         return (
           <li
             className="flex justify-between items-center p-2 bg-blue-600 rounded-lg cursor-pointer transition-all ease-in-out duration-100 hover:translate-x-[.5px] hover:translate-y-[-.5px]"
             key={todo.id}
+            onDoubleClick={() => editTodo(todo.id)}
           >
             <div className={clsx("grid", { "opacity-50": todo.completed })}>
-              {!todo.edited ? (
+              {!todo.edited && keyDown === "" ? (
                 <span className="font-semibold text-lg">{todo.text}</span>
               ) : (
                 <input
                   id="text-input"
                   name="text"
-                  className="font-semibold text-lg"
+                  className="font-semibold text-lg border-0 outline-2 rounded-sm px-2 py-0.5 focus:outline-blue-300"
+                  ref={inputRef}
+                  onChange={handleChange}
+                  value={editInputValue}
                 />
               )}
               <span className="">{todo.date}</span>

@@ -10,11 +10,11 @@ export default function Form({ setTodos }) {
     time: "",
   });
 
-  const inputRef = useRef(null);
+  // const inputRef = useRef(null);
 
-  useEffect(() => {
-    inputRef.current.focus();
-  });
+  // useEffect(() => {
+  //   inputRef.current.focus();
+  // });
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -82,7 +82,6 @@ export default function Form({ setTodos }) {
           placeholder="e.g, Buy groceries"
           value={formData.text}
           onChange={handleChange}
-          ref={inputRef}
         />
         <label
           htmlFor="date-input"
