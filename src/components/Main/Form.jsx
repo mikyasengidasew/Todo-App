@@ -46,10 +46,12 @@ export default function Form({ setTodos }) {
     const todoItem = {
       id: crypto.randomUUID(),
       completed: false,
+      edited: false,
       text: formData.text,
       date: formData.date,
       time: formData.time,
     };
+
     setTodos((prev) => [...prev, todoItem]);
     setFormData((prev) => ({
       ...prev,
