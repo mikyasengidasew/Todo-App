@@ -1,86 +1,144 @@
-import { useState, useRef, useEffect } from "react";
-
+import editIcon from "../../assets/icons/icon-edit-white.svg";
 import deleteIcon from "../../assets/icons/icon-delete-white.svg";
 import checkIcon from "../../assets/icons/icon-check-white.svg";
 import checkedIcon from "../../assets/icons/icon-checked-white.svg";
 import clsx from "clsx";
+import { useState, useEffect, useRef } from "react";
 
-export default function TodoRender({ setTodos, todos }) {
-  const [editBoolean, setEditBoolean] = useState(false);
-  const [editInputValue, setEditInputValue] = useState("");
-  const [keyDown, setKeyDown] = useState("");
-
-  const deleteTodo = (id) => {
-    setTodos(todos.filter((todo) => todo.id !== id));
-  };
-
-  const checkTodo = (id) => {
-    const updatedTodo = todos.map((todo) =>
-      todo.id === id ? { ...todo, completed: !todo.completed } : todo
-    );
-    setTodos(updatedTodo);
-  };
-
-  const editTodo = (id) => {
-    const editedTodo = todos.map((todo) =>
-      todo.id === id ? { ...todo, edited: !todo.edited } : todo
-    );
-    setTodos(editedTodo);
-    setEditBoolean((prev) => !prev);
-  };
-
+/**
+ * TodoRender
+ * Props:
+ *  - todos: array of todo objects { id, text, date, time, completed, edited }
+ *  - setTodos: state setter (function)
+ *
+ * Improvements made:
+ * - Single-edit-at-a-time via editingId state
+ * - Safe functional updates (setTodos(prev => ...))
+ * - Auto-focus input when editing starts
+ * - Enter to save, Escape to cancel
+ * - Prevent saving empty text (trimmed)
+ * - Cancel restores previous text (no accidental overwrite)
+ * - Buttons use type="button" and have aria-labels; icons are decorative (alt="")
+ */
+export default function TodoRender({ todos, setTodos }) {
+  // Temporary buffer for the text being edited
+  const [editText, setEditText] = useState("");
+  // id of the todo currently being edited (null = none)
+  const [editingId, setEditingId] = useState(null);
   const inputRef = useRef(null);
-  useEffect(() => {
-    if (editBoolean && inputRef.current) {
-      inputRef.current.focus();
-      console.log(inputRef.current.value);
-      setEditBoolean(false);
+
+  // ---------- CRUD helpers (use functional updates to avoid stale closures) ----------
+  const deleteTodo = (id) => {
+    setTodos((prev) => prev.filter((t) => t.id !== id));
+    // If deleting the item currently being edited, clear edit state
+    if (editingId === id) {
+      setEditingId(null);
+      setEditText("");
     }
-  }, [editBoolean]);
-
-  const handleChange = (e) => {
-    setEditInputValue(e.target.value);
   };
 
-  const handleKeyDown = (e) => {
-    if (e.key === "Enter") {
-      const editedTodoValue = todos.map(
-        (todo) =>
-          todo.edited && { ...todo, text: editInputValue, edited: !todo.edited }
-      );
-      setTodos(editedTodoValue);
-      setKeyDown("Enter");
-    } else setKeyDown("");
+  const toggleComplete = (id) => {
+    setTodos((prev) =>
+      prev.map((t) => (t.id === id ? { ...t, completed: !t.completed } : t))
+    );
   };
 
+  // ---------- Editing flow ----------
+  function startEditing(id) {
+    // find the todo text to pre-fill
+    const todo = todos.find((t) => t.id === id);
+    if (!todo) return;
+    // Only one todo may be edited at a time — disable any other edit modes
+    setTodos((prev) =>
+      prev.map((t) =>
+        t.id === id ? { ...t, edited: true } : { ...t, edited: false }
+      )
+    );
+    setEditingId(id);
+    setEditText(todo.text ?? "");
+  }
+
+  function cancelEditing(id) {
+    // Clear edited flag for the todo and reset local editing state
+    setTodos((prev) =>
+      prev.map((t) => (t.id === id ? { ...t, edited: false } : t))
+    );
+    setEditingId(null);
+    setEditText("");
+  }
+
+  function saveEditing(id) {
+    const trimmed = editText.trim();
+    if (trimmed === "") {
+      // Simple UX: don't allow empty text — you can change this behavior if desired
+      alert("Please type something before saving.");
+      return;
+    }
+    setTodos((prev) =>
+      prev.map((t) =>
+        t.id === id ? { ...t, text: trimmed, edited: false } : t
+      )
+    );
+    setEditingId(null);
+    setEditText("");
+  }
+
+  // When editingId changes, focus the input (single-edit model)
+  useEffect(() => {
+    if (editingId && inputRef.current) {
+      inputRef.current.focus();
+      // optionally select the text for quick overwrite
+      inputRef.current.select?.();
+    }
+  }, [editingId]);
+
+  // ---------- JSX ----------
   return (
-    <ul
-      className="grid gap-3 bg-blue-500 text-white p-3 rounded-lg drop-shadow-xl drop-shadow-blue-300"
-      onKeyDown={handleKeyDown}
-    >
+    <ul className="grid gap-3 bg-blue-500 text-white p-3 rounded-lg drop-shadow-xl drop-shadow-blue-300">
       {todos.map((todo) => {
+        const isEditing = editingId === todo.id || todo.edited === true;
+
         return (
           <li
-            className="flex justify-between items-center p-2 bg-blue-600 rounded-lg cursor-pointer transition-all ease-in-out duration-100 hover:translate-x-[.5px] hover:translate-y-[-.5px]"
             key={todo.id}
-            onDoubleClick={() => editTodo(todo.id)}
+            className={clsx(
+              "flex justify-between items-center p-2 bg-blue-600 rounded-lg transition-all ease-in-out duration-100",
+              "hover:translate-x-[.5px] hover:translate-y-[-.5px]",
+              // make pointer only when not editing input; keep cursor-text if input present
+              { "cursor-text": isEditing, "cursor-pointer": !isEditing }
+            )}
+            // double-click to start editing (keeps behavior you had)
+            onDoubleClick={() => startEditing(todo.id)}
           >
-            <div className={clsx("grid", { "opacity-50": todo.completed })}>
-              {!todo.edited && keyDown === "" ? (
-                <span className="font-semibold text-lg">{todo.text}</span>
+            <div
+              className={clsx("grid gap-1", { "opacity-50": todo.completed })}
+            >
+              {/* conditional: show input when editing; otherwise plain text */}
+              {!isEditing ? (
+                <span className="font-semibold text-lg p-1">{todo.text}</span>
               ) : (
                 <input
-                  id="text-input"
-                  name="text"
-                  className="font-semibold text-lg border-0 outline-2 rounded-sm px-2 py-0.5 focus:outline-blue-300"
                   ref={inputRef}
-                  onChange={handleChange}
-                  value={editInputValue}
+                  type="text"
+                  aria-label="Edit task text"
+                  value={editText}
+                  onChange={(e) => setEditText(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter") {
+                      // save on Enter
+                      saveEditing(todo.id);
+                    } else if (e.key === "Escape") {
+                      // cancel on Escape
+                      cancelEditing(todo.id);
+                    }
+                  }}
+                  className="border-0 outline-4 outline-blue-700 p-1 text-lg font-medium rounded-sm focus:outline-blue-300 text-black"
                 />
               )}
-              <span className="">{todo.date}</span>
-              <span className="font-medium">
-                {/* Link this at to the time input field */}
+
+              <span className="text-sm opacity-90">{todo.date}</span>
+
+              <span className="text-sm font-medium">
                 <label
                   htmlFor="time-input"
                   className="text-[1.3rem] cursor-pointer"
@@ -90,9 +148,11 @@ export default function TodoRender({ setTodos, todos }) {
                 {todo.time}
               </span>
             </div>
-            <div className="grid gap-2">
+
+            <div className="grid gap-2 grid-cols-3">
+              {/* Delete */}
               <button
-                className="px-5 py-2 rounded-full bg-red-600/65 cursor-pointer  transition-all ease-in-out duration-200 hover:bg-red-600"
+                className="px-4 py-2 rounded-full bg-red-600/65 transition-all duration-200 hover:bg-red-600"
                 type="button"
                 aria-label="Delete task"
                 title="Delete task"
@@ -100,12 +160,28 @@ export default function TodoRender({ setTodos, todos }) {
               >
                 <img src={deleteIcon} alt="" />
               </button>
+
+              {/* Edit / Save */}
               <button
-                className="px-5 py-2 rounded-full bg-blue-700/60 cursor-pointer  transition-all ease-in-out duration-200 hover:bg-blue-800"
+                className="px-4 py-2 rounded-full bg-blue-700/60 transition-all duration-200 hover:bg-blue-800"
                 type="button"
-                aria-label="Mark task as done"
+                aria-label={isEditing ? "Save task" : "Edit task"}
+                title={isEditing ? "Save task" : "Edit task"}
+                onClick={() => {
+                  if (isEditing) saveEditing(todo.id);
+                  else startEditing(todo.id);
+                }}
+              >
+                <img src={isEditing ? checkedIcon : editIcon} alt="" />
+              </button>
+
+              {/* Toggle Completed */}
+              <button
+                className="px-4 py-2 rounded-full bg-blue-700/60 transition-all duration-200 hover:bg-blue-800"
+                type="button"
+                aria-label="Toggle complete"
                 title="Mark as done"
-                onClick={() => checkTodo(todo.id)}
+                onClick={() => toggleComplete(todo.id)}
               >
                 <img src={!todo.completed ? checkIcon : checkedIcon} alt="" />
               </button>
@@ -116,11 +192,3 @@ export default function TodoRender({ setTodos, todos }) {
     </ul>
   );
 }
-// When the user double clicks the task item, all the inputs become editable.
-// -> In the object structure that I have I need to add edited boolean.
-// -> On double click flip the value of the edited boolean.
-// -> If the edited boolean value is true, make all the inputs on the task item receive inputs.
-// ->> To make the input button editable and to keep what's inside the task item, I will pass the values that I get from the loop as the value for the input.
-// ->> Then I keep track of the changes using the onChange attribute, by getting the value of the input using a function.
-// ->> Get the final value from the input fields and change the values in the object structure with them, on the user enter or double click.
-// Check for any possible bugs and fix them around the localStorage, the task item structure and others.
